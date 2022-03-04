@@ -1,0 +1,45 @@
+#!/bin/sh
+
+#
+# Unpack the ZIP archive from CoreMedia and arrange the contained blobs in a
+# directory hierarchy suitable for the CMS/serverimport.
+#
+# The external blob storage expects blobs to be available under this URL:
+#   /7e/ea/7eea74e0fa6cc945a8b2a5ede88e1c5c
+
+set -eu
+
+cleanup() {
+  rm -rf ${TMPDIR}
+}
+
+usage() {
+  echo "usage: $0 blobs.zip" >&2
+  exit 64
+}
+
+if [ -z "${1:-}" ]; then
+  usage
+fi
+
+TMPDIR="$(mktemp -d /var/tmp/unpack-blobs-XXXXXXX)"
+HERE="$(pwd)"
+trap cleanup EXIT
+
+mkdir -p ${TMPDIR}
+
+echo "Unpacking ZIP $1..."
+unzip -d ${TMPDIR} -j -n -q "$1"
+
+cd $TMPDIR
+
+for i in *.blob; do
+  eval $(echo $i | sed -Ee 's#(..)(..)(.*).blob#d=\1/\2 f=\1/\2/\1\2\3#')
+  mkdir -p $d
+  mv $i $f
+done
+
+echo "Moving rearranged blobs to ${HERE}/blobs..."
+cd "${HERE}"
+rm -r blobs/*
+mv ${TMPDIR}/* blobs

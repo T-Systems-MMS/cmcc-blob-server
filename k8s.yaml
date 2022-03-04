@@ -1,0 +1,115 @@
+#
+# Example StatefulSet and Service to allow the blobs to be served
+# in a k8s cluster.
+#
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: blob-server
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      cmcc.tsystemsmms.com/name: blob-server
+      cmcc.tsystemsmms.com/type: blob-server
+  serviceName: blob-server
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        cmcc.tsystemsmms.com/name: blob-server
+        cmcc.tsystemsmms.com/type: blob-server
+      namespace: default
+    spec:
+      containers:
+      - env:
+        - name: PROTOCOL
+        image: gitlab.example.com/7001-03/buderus/coremedia-blobs/coremedia-blobs:2201.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /
+            port: http
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: blob-server
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /
+            port: http
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2G
+          requests:
+            cpu: 100m
+            memory: 500M
+        securityContext:
+          readOnlyRootFilesystem: true
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /
+            port: http
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/tmp
+          name: var-tmp
+        - mountPath: /var/cache/nginx
+          name: var-cache-nginx
+        - mountPath: /var/run
+          name: var-run
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 5
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: var-tmp
+      - emptyDir: {}
+        name: var-cache-nginx
+      - emptyDir: {}
+        name: var-run
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blob-server
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    cmcc.tsystemsmms.com/name: blob-server
+    cmcc.tsystemsmms.com/type: blob-server
+  sessionAffinity: None
+  type: ClusterIP
