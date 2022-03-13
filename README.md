@@ -11,7 +11,7 @@ At the time of this writing, the most recent Blueprint workspace and blob archiv
 1. Download the blob archive.
 1. Extract the contents into the `blob/` directory, rearranging the blob files into the correct directory structure:
   ```
-  ./unpacl-blobs-zip ~/Downloads/cmcc-11-blueprint-workspace-content-blobs.zip
+  ./unpack-blobs-zip ~/Downloads/cmcc-11-blueprint-workspace-content-blobs.zip
   ```
 1. Build the image:
   ```
