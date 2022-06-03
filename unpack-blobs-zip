@@ -55,5 +55,6 @@ done
 
 echo "Moving rearranged blobs to ${HERE}/blobs..."
 cd "${HERE}"
-rm -r blobs/*
+rm -rf blobs
+mkdir -p blobs
 mv ${TMPDIR}/* blobs

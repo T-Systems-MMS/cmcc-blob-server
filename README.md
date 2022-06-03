@@ -4,20 +4,24 @@ CoreMedia Content Cloud can make use of externally stored blobs (for images, vid
 
 # Download blobs from CoreMedia
 
-At the time of this writing, the most recent Blueprint workspace and blob archive was available from https://releases.coremedia.com/cmcc-11/overview/distributions/2201.1. You might need a login to access this page.
+At the time of this writing, the most recent Blueprint workspace and blob archive was available from https://releases.coremedia.com/cmcc-11/overview/distributions/2204.1. You might need a login to access this page.
 
 # Building The Image
 
 1. Download the blob archive.
 1. Extract the contents into the `blob/` directory, rearranging the blob files into the correct directory structure:
-  ```
+  ```shell
   ./unpack-blobs-zip ~/Downloads/cmcc-11-blueprint-workspace-content-blobs.zip
   ```
-1. Build the image:
+3. Build the image:
+  ```shell
+  DOCKER_BUILDKIT=1 docker build -t coremedia-blob:2204.1 ./
   ```
-  DOCKER_BUILDKIT=1 docker build -t coremedia-blob:2201.1 ./
+  Or alternatively, build a multi-arch image with buildx:
+  ```shell
+  docker buildx build --platform linux/amd64,linux/arm64 --push --tag my-registry.example.com/coremedia-blobs/coremedia-blobs:2204.1 .
   ```
-1. (Optionally) Push the image to your registry.
+4. (Optionally) Push the image to your registry.
 
 Note that the image will be close to 1 GB in size; make sure your network connection and registry are up to that.
 
@@ -25,8 +29,8 @@ Note that the image will be close to 1 GB in size; make sure your network connec
 
 To run the blob server locally with Docker, making it available on port 8080:
 
-```
-docker run --rm -p 80:8080 coremedia-blob:2201.1
+  ```shell
+docker run --rm -p 80:8080 coremedia-blob:2204.1
 ```
 
 # Making blobs available in a k8s deployment
